@@ -1,6 +1,6 @@
 ﻿@{
 ModuleToProcess = 'eid-provider-ps.dll'
-ModuleVersion = '1.0.0'
+ModuleVersion = '0.0.1'
 GUID = '0cc22ff9-bc50-4190-873d-18c8e68d3bdf'
 Author = 'Daniel Sörlöv'
 CompanyName = 'Daniel Sörlöv'

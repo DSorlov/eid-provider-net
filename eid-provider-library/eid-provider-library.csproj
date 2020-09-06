@@ -14,6 +14,7 @@
     <RepositoryUrl>https://github.com/DSorlov/eid-provider-net.git</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageProjectUrl>https://github.com/DSorlov/eid-provider-net</PackageProjectUrl>
+    <Version>0.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

@@ -7,6 +7,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "eid-provider-library", "eid
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "eid-provider-ps", "eid-provider-ps\eid-provider-ps.csproj", "{16DD6460-9284-4917-85AB-C5A547FF83D2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{813C5119-29E2-4A37-844B-B582D9E76243}"
+	ProjectSection(SolutionItems) = preProject
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

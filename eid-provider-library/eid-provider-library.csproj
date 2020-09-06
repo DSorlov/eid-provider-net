@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>com.sorlov.eidprovider</RootNamespace>
+    <AssemblyName>eid-provider</AssemblyName>
+    <Authors>Daniel Sörlöv</Authors>
+    <Company>Daniel Sörlöv</Company>
+    <PackageId>eid-provider</PackageId>
+    <Product>EIDProvider.Net</Product>
+    <Copyright>(c) 2019-2020 Daniel Sörlöv. All rights reserved.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>eid-provider adapted for .net</Description>
+    <RepositoryUrl>https://github.com/DSorlov/eid-provider-net.git</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <PackageProjectUrl>https://github.com/DSorlov/eid-provider-net</PackageProjectUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="certs\bankid_prod.ca" />
+    <None Remove="certs\bankid_test.ca" />
+    <None Remove="certs\bankid_test.pfx" />
+    <None Remove="certs\frejaeid_prod.ca" />
+    <None Remove="certs\frejaeid_prod_aRw9OLn2BhM7hxoc458cIXHfezw.jwt" />
+    <None Remove="certs\frejaeid_prod_onjnxVgI3oUzWQMLciD7sQZ4mqM.jwt" />
+    <None Remove="certs\frejaeid_test.ca" />
+    <None Remove="certs\frejaeid_test.pfx" />
+    <None Remove="certs\frejaeid_test_2LQIrINOzwWAVDhoYybqUcXXmVs.jwt" />
+    <None Remove="certs\frejaeid_test_HwMHK_gb3_iuNF1advMtlG0-fUs.jwt" />
+    <None Remove="certs\ftbankid_prod.ca" />
+    <None Remove="certs\ftbankid_test.ca" />
+    <None Remove="certs\ftfrejaeid_prod.ca" />
+    <None Remove="certs\ftfrejaeid_test.ca" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="certs\bankid_prod.ca" />
+    <EmbeddedResource Include="certs\bankid_test.ca" />
+    <EmbeddedResource Include="certs\bankid_test.pfx" />
+    <EmbeddedResource Include="certs\frejaeid_prod.ca" />
+    <EmbeddedResource Include="certs\frejaeid_prod_aRw9OLn2BhM7hxoc458cIXHfezw.jwt" />
+    <EmbeddedResource Include="certs\frejaeid_prod_onjnxVgI3oUzWQMLciD7sQZ4mqM.jwt" />
+    <EmbeddedResource Include="certs\frejaeid_test.pfx" />
+    <EmbeddedResource Include="certs\frejaeid_test.ca" />
+    <EmbeddedResource Include="certs\frejaeid_test_2LQIrINOzwWAVDhoYybqUcXXmVs.jwt" />
+    <EmbeddedResource Include="certs\frejaeid_test_HwMHK_gb3_iuNF1advMtlG0-fUs.jwt" />
+    <EmbeddedResource Include="certs\ftbankid_prod.ca" />
+    <EmbeddedResource Include="certs\ftbankid_test.ca" />
+    <EmbeddedResource Include="certs\ftfrejaeid_prod.ca" />
+    <EmbeddedResource Include="certs\ftfrejaeid_test.ca" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+</Project>

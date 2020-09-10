@@ -52,6 +52,9 @@ namespace com.sorlov.eidprovider.ps
                     case EIDModulesEnum.bankid:
                         client = new bankid.Client((bankid.InitializationData)config);
                         return;
+                    case EIDModulesEnum.frejaeid:
+                        client = new frejaeid.Client((frejaeid.InitializationData)config);
+                        return;
                     default:
                         WriteError(new ErrorRecord(new ProviderNotFoundException(module.ToString() + " is not supported in this version of eid-provider-ps, upgrade?"), "101", ErrorCategory.InvalidArgument, Configuration));
                         StopProcessing();

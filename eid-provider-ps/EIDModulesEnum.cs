@@ -8,6 +8,7 @@ namespace com.sorlov.eidprovider.ps
 {
     public enum EIDModulesEnum
     {
-        bankid
+        bankid,
+        frejaeid
     }
 }

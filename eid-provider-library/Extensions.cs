@@ -9,6 +9,20 @@ namespace com.sorlov.eidprovider
 {
     static class Extensions
     {
+        public static void ForEach<T, U>(this Dictionary<T, U> d, Action<KeyValuePair<T, U>> a)
+        {
+            foreach (KeyValuePair<T, U> p in d) { a(p); }
+        }
+
+        public static void ForEach<T, U>(this Dictionary<T, U>.KeyCollection k, Action<T> a)
+        {
+            foreach (T t in k) { a(t); }
+        }
+
+        public static void ForEach<T, U>(this Dictionary<T, U>.ValueCollection v, Action<U> a)
+        {
+            foreach (U u in v) { a(u); }
+        }
         /// <summary>
         /// Returns a new string in which all occurrences of a specified string in the current instance are replaced with another 
         /// specified string according the type of search to use for the specified string.

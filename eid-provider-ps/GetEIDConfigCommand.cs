@@ -5,26 +5,26 @@ namespace com.sorlov.eidprovider.ps
     // Declare the class as a cmdlet and specify the
     // appropriate verb and noun for the cmdlet name.
     [Cmdlet(VerbsCommon.Get, "EIDConfig")]
-    [OutputType("com.sorlov.eidprovider.IInitializationData")]
+    [OutputType("com.sorlov.eidprovider.EIDClientInitializationData")]
     public class GetEIDConfig : Cmdlet
     {
         // Declare the parameters for the cmdlet.
         [Parameter(Position = 0, Mandatory = true)]
-        public Modules Module
+        public EIDModulesEnum Module
         {
             get => module;
             set => module = value;
         }
-        private Modules module;
+        private EIDModulesEnum module;
 
         [Parameter(Position = 1)]
         [ValidateNotNullOrEmpty()]
-        public Enviroments Enviroment
+        public EIDEnvironment Enviroment
         {
             get => enviroment;
             set => enviroment = value;
         }
-        private Enviroments enviroment = Enviroments.testing;
+        private EIDEnvironment enviroment = EIDEnvironment.Testing;
 
         // Override the ProcessRecord method to process
         // the supplied user name and write out a
@@ -34,11 +34,14 @@ namespace com.sorlov.eidprovider.ps
         {
             switch (module)
             {
-                case Modules.bankid:
+                case EIDModulesEnum.bankid:
                     WriteObject(new bankid.InitializationData(enviroment));
                     break;
+                case EIDModulesEnum.frejaeid:
+                    WriteObject(new frejaeid.InitializationData(enviroment));
+                    break;
                 default:
-                    WriteError(new ErrorRecord(new ProviderNotFoundException(Modules.bankid.ToString() + " is not supported in this version of eid-provider-ps, upgrade?"), "101", ErrorCategory.InvalidArgument, Module));
+                    WriteError(new ErrorRecord(new ProviderNotFoundException(module.ToString() + " is not supported in this version of eid-provider-ps, upgrade?"), "101", ErrorCategory.InvalidArgument, Module));
                     break;
             }
         }

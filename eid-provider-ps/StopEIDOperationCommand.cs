@@ -8,7 +8,7 @@ namespace com.sorlov.eidprovider.ps
     // Declare the class as a cmdlet and specify the
     // appropriate verb and noun for the cmdlet name.
     [Cmdlet(VerbsLifecycle.Stop, "EIDOperation", SupportsShouldProcess = true)]
-    [OutputType("com.sorlov.eidprovider.ApiResponse")]
+    [OutputType("System.Management.Automation.PSObject#com.sorlov.eidprovider.EIDResult")]
     public class StopEIDOperation : Cmdlet
     {
         
@@ -16,12 +16,12 @@ namespace com.sorlov.eidprovider.ps
         // Declare the parameters for the cmdlet.
         [Parameter(Position = 0, Mandatory = true)]
         [ValidateNotNullOrEmpty()]
-        public IInitializationData Configuration
+        public EIDClientInitializationData Configuration
         {
             get => config;
             set => config = value;
         }
-        private IInitializationData config;
+        private EIDClientInitializationData config;
 
         [Parameter(Position = 1, Mandatory = true, ValueFromPipelineByPropertyName=true)]
         public EIDTypesEnum Type
@@ -46,11 +46,14 @@ namespace com.sorlov.eidprovider.ps
             string typeString = config.GetType().FullName.Replace("com.sorlov.eidprovider.", "").Replace(".InitializationData", "");
             try
             {
-                module = (Modules)Enum.Parse(typeof(Modules), typeString);
+                module = (EIDModulesEnum)Enum.Parse(typeof(EIDModulesEnum), typeString);
                 switch (module)
                 {
-                    case Modules.bankid:
+                    case EIDModulesEnum.bankid:
                         client = new bankid.Client((bankid.InitializationData)config);
+                        return;
+                    case EIDModulesEnum.frejaeid:
+                        client = new frejaeid.Client((frejaeid.InitializationData)config);
                         return;
                     default:
                         WriteError(new ErrorRecord(new ProviderNotFoundException(module.ToString() + " is not supported in this version of eid-provider-ps, upgrade?"), "101", ErrorCategory.InvalidArgument, Configuration));
@@ -66,14 +69,14 @@ namespace com.sorlov.eidprovider.ps
                 return;
             }
         }
-        private Modules module;
-        private IClient client;
+        private EIDModulesEnum module;
+        private EIDClient client;
 
         protected override void ProcessRecord()
         {
                 if (ShouldProcess(id, "Cancel"))
                 {
-                    WriteObject(type == EIDTypesEnum.Authentication ? client.CancelAuthRequest(id) : client.CancelSignRequest(id));
+                    WriteObject(PSObjectConverter.EIDResult(type == EIDTypesEnum.auth ? client.CancelAuthRequest(id) : client.CancelSignRequest(id)));
                 }
         }
 

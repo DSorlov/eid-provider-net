@@ -1,321 +1,201 @@
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace com.sorlov.eidprovider.bankid
 {
-    public class Client: IClient
+    public class Client : EIDClient
     {
-
-        private X509Certificate2 cACert;
-        private X509Certificate2 clientCert;
+        private X509Certificate2 caCertificate;
+        private X509Certificate2 clientCertificate;
         private bool allowFingerprint;
         private string httpEndpoint;
 
-        public Client(IInitializationData settings)
-        {
-            if (settings.GetType() != typeof(InitializationData))
-                throw new NotSupportedException("Can only process BankID Initialization data");
-
-            clientCert = ((InitializationData)settings).ClientCertificate;
-            cACert = ((InitializationData)settings).CACertificate;
-            allowFingerprint= ((InitializationData)settings).AllowFingerprint;
-            httpEndpoint = ((InitializationData)settings).Endpoint;
-        }
-
-        public event EventHandler StatusUpdate;
-        protected virtual void OnStatusUpdate(ApiEventArgs e)
-        {
-            StatusUpdate?.Invoke(this, e);
-        }
-
-        public ApiResponse AuthRequest(string id)
-        {
-            ApiResponse apiResponse = InitAuthRequest(id);
-            if (apiResponse.Status != ApiResponse.ResponseType.initialized) return apiResponse;
-
-            OnStatusUpdate(new ApiEventArgs(apiResponse));
-            while (true)
-            {
-                ApiResponse pollResponse = PollAuthRequest(((ApiRequestInitializationResponse)apiResponse).Id);
-
-                if (pollResponse.Status == ApiResponse.ResponseType.error)
-                    return pollResponse;
-
-                if (pollResponse.Status == ApiResponse.ResponseType.completed)
-                    return pollResponse;
-
-                if (pollResponse.Status == ApiResponse.ResponseType.pending)
-                    OnStatusUpdate(new ApiEventArgs(pollResponse));
-
-                Thread.Sleep(2000);
-            }
-
-        }
-
-        public ApiResponse SignRequest(string id, string agreementText)
-        {
-            ApiResponse apiResponse = InitSignRequest(id, agreementText);
-            if (apiResponse.Status != ApiResponse.ResponseType.initialized) return apiResponse;
-
-            OnStatusUpdate(new ApiEventArgs(apiResponse));
-            while (true)
-            {
-                ApiResponse pollResponse = PollSignRequest(((ApiRequestInitializationResponse)apiResponse).Id);
-
-                if (pollResponse.Status == ApiResponse.ResponseType.error)
-                    return pollResponse;
-
-                if (pollResponse.Status == ApiResponse.ResponseType.completed)
-                    return pollResponse;
-
-                if (pollResponse.Status == ApiResponse.ResponseType.pending)
-                    OnStatusUpdate(new ApiEventArgs(pollResponse));
-
-                Thread.Sleep(2000);
-            }
-
-        }
-
-        public ApiResponse cancelRequest(string requestId)
-        {
-            ServicePointManager.ServerCertificateValidationCallback = (a, b, c, d) => true; ///TODO: Fix remote validation, now swallow all
-
-            HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(httpEndpoint + "/cancel");
-            httpWebRequest.ContentType = "application/json";
-            httpWebRequest.Method = "POST";
-            httpWebRequest.PreAuthenticate = true;
-            httpWebRequest.AllowAutoRedirect = true;
-            httpWebRequest.ClientCertificates.Add(clientCert);
-
-            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
-                streamWriter.Write("{\"orderRef\":\"" + requestId + "\"}");
-
-            return new ApiResponse() { Status = ApiResponse.ResponseType.cancelled };
-        }
-
-        public ApiResponse CancelAuthRequest(string requestId)
-        {
-            return cancelRequest(requestId);
-        }
-
-        public ApiResponse CancelSignRequest(string requestId)
-        {
-            return cancelRequest(requestId);
-        }
-
-        private ApiResponse initRequest(string jsonData,string endpoint) {
-
-            ServicePointManager.ServerCertificateValidationCallback = (a, b, c, d) => true; ///TODO: Fix remote validation, now swallow all
-
-            HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(httpEndpoint+"/"+endpoint);
-            httpWebRequest.ContentType = "application/json";
-            httpWebRequest.Method = "POST";
-            httpWebRequest.PreAuthenticate = true;
-            httpWebRequest.AllowAutoRedirect = true;
-            httpWebRequest.ClientCertificates.Add(clientCert);
-
-            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
-            {
-                streamWriter.Write(jsonData);
-            }
+        public Client(EIDClientInitializationData configuration) : base(configuration) {
 
             try
             {
-                HttpWebResponse httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-
-                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-                {
-                    string postResults = streamReader.ReadToEnd();
-                    Dictionary<string, string> responseObject = JsonConvert.DeserializeObject<Dictionary<string, string>>(postResults);
-
-                    if (responseObject.ContainsKey("orderRef"))
-                    {
-                        ApiRequestInitializationResponse response = new ApiRequestInitializationResponse(responseObject["orderRef"]);
-                        response.Extra.Add("autostart_token", responseObject["autoStartToken"]);
-                        response.Extra.Add("autostart_url", "bankid:///?autostarttoken=" + responseObject["autoStartToken"] + "&redirect=null");
-                        return response;
-                    }
-
-                }
+                caCertificate = new X509Certificate2(EIDResourceManager.ResolveResource(configuration["ca_cert"]));
+                clientCertificate = new X509Certificate2(EIDResourceManager.ResolveResource(configuration["client_cert"]), configuration["password"]);
+                allowFingerprint = configuration["allowFingerprint"] == null ? false : Boolean.Parse(configuration["allowFingerprint"]);
+                httpEndpoint = configuration["endpoint"];
             }
-            catch (WebException e)
+            catch
             {
-                var response = ((HttpWebResponse)e.Response);
-                int code = (int)((HttpWebResponse)e.Response).StatusCode;
-
-                using (var streamReader = new StreamReader(response.GetResponseStream()))
-                {
-                    string postResults = streamReader.ReadToEnd();
-                    Dictionary<string, string> responseObject = JsonConvert.DeserializeObject<Dictionary<string, string>>(postResults);
-
-                    if (responseObject.ContainsKey("errorCode"))
-                    {
-                        switch (responseObject["errorCode"].ToString())
-                        {
-                            case "alreadyInProgress":
-                                return new ApiErrorResponse(ApiErrorResponse.ErrorCode.already_in_progress, "A transaction was already pending for this SSN"); ;
-                            case "invalidParameters":
-
-                                switch (responseObject["details"].ToString())
-                                {
-                                    case "Incorrect personalNumber":
-                                        return new ApiErrorResponse(ApiErrorResponse.ErrorCode.request_ssn_invalid, "The supplied SSN is not valid"); ;
-                                    case "Invalid userVisibleData":
-                                        return new ApiErrorResponse(ApiErrorResponse.ErrorCode.request_text_invalid, "The supplied agreement text is not valid"); ;
-                                    default:
-                                        return new ApiErrorResponse(ApiErrorResponse.ErrorCode.api_error, "A communications error occured", responseObject["details"].ToString());
-                                }
-
-                            default:
-                                return new ApiErrorResponse(ApiErrorResponse.ErrorCode.api_error, "A communications error occured", responseObject["errorCode"].ToString());
-                        }
-
-                    }
-                    else
-                    {
-                        return new ApiErrorResponse(ApiErrorResponse.ErrorCode.system_error, "Unkown response from remote API"); ;
-                    }
-                }
+                throw new ArgumentException("Configuration block was not valid");
             }
-
-            return new ApiErrorResponse(ApiErrorResponse.ErrorCode.system_error, "Unkown response from remote API"); ;
+            
         }
 
-        public ApiResponse InitAuthRequest(string id)
+        public override EIDResult CancelAuthRequest(string id)
         {
-            string jsonData = "{" +
-                "\"endUserIp\":\"127.0.0.1\"," +
-                "\"personalNumber\":\""+id+"\","+
-                "\"requirement\": {" +
-                    "\"allowFingerprint\":" + allowFingerprint.ToString().ToLower() + ""+
-                    "}"+
-                "}";
-
-            return initRequest(jsonData,"auth");
-        }
-        public ApiResponse InitSignRequest(string id, string agreementText)
-        {
-            string jsonData = "{" +
-                "\"endUserIp\":\"127.0.0.1\"," +
-                "\"personalNumber\":\""+id+"\","+
-                "\"userVisibleData\":\""+System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(agreementText))+"\","+
-                "\"requirement\": {" +
-                    "\"allowFingerprint\": " + allowFingerprint.ToString().ToLower()+""+
-                    "}"+
-                "}";
-
-            return initRequest(jsonData,"sign");
+            return cancelRequest(id);
         }
 
-        public ApiResponse pollRequest(string requestId)
+        public override EIDResult CancelSignRequest(string id)
         {
-            ServicePointManager.ServerCertificateValidationCallback = (a, b, c, d) => true; ///TODO: Fix remote validation, now swallow all
+            return cancelRequest(id);
+        }
 
-            HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(httpEndpoint + "/collect");
-            httpWebRequest.ContentType = "application/json";
-            httpWebRequest.Method = "POST";
-            httpWebRequest.PreAuthenticate = true;
-            httpWebRequest.AllowAutoRedirect = true;
-            httpWebRequest.ClientCertificates.Add(clientCert);
+        public override EIDResult InitAuthRequest(string id)
+        {
+            JObject postData = new JObject();
+            postData["personalNumber"] = id;
+            postData["requirement"] = new JObject();
+            postData["requirement"]["allowFingerprint"] = allowFingerprint;
+            postData["endUserIp"] = "127.0.0.1";
 
-            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
-                streamWriter.Write("{\"orderRef\":\"" + requestId + "\"}");
+            return initRequest("auth", postData);
+        }
+        public override EIDResult InitSignRequest(string id, string text)
+        {
+            if (String.IsNullOrEmpty(text))
+                return EIDResult.CreateErrorResult("request_text_invalid", "The supplied agreement text is not valid");
 
-            try
+            JObject postData = new JObject();
+            postData["personalNumber"] = id;
+            postData["requirement"] = new JObject();
+            postData["requirement"]["allowFingerprint"] = allowFingerprint;
+            postData["endUserIp"] = "127.0.0.1";
+            postData["userVisibleData"] = System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(text));
+
+            return initRequest("sign",postData);
+        }
+
+        public override EIDResult PollAuthRequest(string id)
+        {
+            return pollRequest(id);
+        }
+
+        public override EIDResult PollSignRequest(string id)
+        {
+            return pollRequest(id);
+        }
+
+        private EIDResult pollRequest(string id)
+        {
+            JObject postData = new JObject();
+            postData["orderRef"] = id;
+            HttpRequest httpRequest = new HttpRequest(caCertificate, clientCertificate);
+            HttpResponse httpResponse = httpRequest.Post(httpEndpoint + "/collect", postData).Result;
+
+            if (httpResponse.ContainsKey("hintCode"))
             {
-                HttpWebResponse httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-
-                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-                {
-                    string postResults = streamReader.ReadToEnd();
-                    JObject responseObject = JsonConvert.DeserializeObject<JObject>(postResults);
-
-                    //string hintCode = Helpers.GetDynamic<string>(responseObject, "hintCode");
-                    if (responseObject.ContainsKey("hintCode"))
+                    switch (httpResponse["hintCode"].ToString())
                     {
-                        switch (responseObject["hintCode"].ToString())
-                        {
-                            case "expiredTransaction":
-                                return new ApiErrorResponse(ApiErrorResponse.ErrorCode.expired_transaction, "The transaction was not completed in time"); ;
-                            case "outstandingTransaction":
-                                return new ApiPendingResponse(ApiPendingResponse.PendingCode.pending_notdelivered, "The transaction has not initialized yet");
-                            case "userSign":
-                                return new ApiPendingResponse(ApiPendingResponse.PendingCode.pending_user_in_app, "User have started the app");
-                            case "noClient":
-                                return new ApiPendingResponse(ApiPendingResponse.PendingCode.pending_delivered, "Delivered to mobile phone");
-                            case "userCancel":
-                                return new ApiErrorResponse(ApiErrorResponse.ErrorCode.cancelled_by_user, "The user declined transaction"); ;
-                            case "cancelled":
-                                return new ApiErrorResponse(ApiErrorResponse.ErrorCode.cancelled_by_idp, "The IdP have cancelled the request"); ;
-                            default:
-                                return new ApiErrorResponse(ApiErrorResponse.ErrorCode.api_error, "A communications error occured", responseObject["hintCode"].ToString());
-                        }
-
+                        case "expiredTransaction":
+                            return EIDResult.CreateErrorResult("expired_transaction", "The transaction was not completed in time");
+                        case "outstandingTransaction":
+                            return EIDResult.CreatePendingResult("pending_notdelivered", "The transaction has not initialized yet");
+                        case "userSign":
+                            return EIDResult.CreatePendingResult("pending_user_in_app", "User have started the app");
+                        case "noClient":
+                            return EIDResult.CreatePendingResult("pending_delivered", "Delivered to mobile phone");
+                        case "userCancel":
+                            return EIDResult.CreateErrorResult("cancelled_by_user", "The user declined transaction");
+                        case "cancelled":
+                            return EIDResult.CreateErrorResult("cancelled_by_idp", "The IdP have cancelled the request");
+                        default:
+                            return EIDResult.CreateErrorResult("api_error", httpResponse["hintCode"].ToString());
                     }
-
-                    ApiCompletedResponseUser responseUser = new ApiCompletedResponseUser(responseObject["completionData"]["user"]["personalNumber"].ToString(), responseObject["completionData"]["user"]["givenName"].ToString(), responseObject["completionData"]["user"]["surname"].ToString(), responseObject["completionData"]["user"]["name"].ToString());
-                    ApiCompletedResponse response = new ApiCompletedResponse(responseUser);
-                    response.Extra.Add("signature", responseObject["completionData"]["signature"].ToString());
-                    response.Extra.Add("ocspResponse", responseObject["completionData"]["ocspResponse"].ToString());
-                    return response;
-                }
             }
-            catch (WebException e)
+
+            if (httpResponse.ContainsKey("completionData"))
             {
-                var response = ((HttpWebResponse)e.Response);
-                int code = (int)((HttpWebResponse)e.Response).StatusCode;
+                JObject result = new JObject();
 
-                using (var streamReader = new StreamReader(response.GetResponseStream()))
+                result["user"] = new JObject();
+                result["user"]["id"] = httpResponse["completionData"]["user"]["personalNumber"].ToString();
+                result["user"]["firstname"] = httpResponse["completionData"]["user"]["givenName"].ToString();
+                result["user"]["lastname"] = httpResponse["completionData"]["user"]["surname"].ToString();
+                result["user"]["fullname"] = httpResponse["completionData"]["user"]["name"].ToString();
+
+                result["extra"] = new JObject();
+                result["extra"]["signature"] = httpResponse["completionData"]["signature"].ToString();
+                result["extra"]["ocspResponse"] = httpResponse["completionData"]["ocspResponse"].ToString();
+
+                return EIDResult.CreateCompletedResult(result);
+
+            }
+
+            if (httpResponse.ContainsKey("errorCode"))
+            {
+                switch (httpResponse["errorCode"].ToString())
                 {
-                    string postResults = streamReader.ReadToEnd();
+                    case "invalidParameters":
+                        return EIDResult.CreateErrorResult("request_id_invalid", "The supplied request cannot be found");
+                    default:
+                        return EIDResult.CreateErrorResult("api_error", httpResponse["errorCode"].ToString());
+                }
 
-                    try
+            }
+
+            return EIDResult.CreateErrorResult("system_error", "A communications error occured", httpResponse.HttpStatusMessage);
+        }
+
+        private EIDResult cancelRequest(string id)
+        {
+            JObject postData = new JObject();
+            postData["orderRef"] = id;
+            HttpRequest httpRequest = new HttpRequest(caCertificate, clientCertificate);
+            HttpResponse httpResponse = httpRequest.Post(httpEndpoint + "/cancel", postData).Result;
+            return EIDResult.CreateCancelledResult();
+        }
+
+        private EIDResult initRequest(string endpoint, JObject postData)
+        {
+            // Make the request
+            HttpRequest httpRequest = new HttpRequest(caCertificate,clientCertificate);
+            HttpResponse httpResponse = httpRequest.Post(httpEndpoint + "/"+ endpoint, postData).Result;
+
+            JObject result = new JObject();
+            if (httpResponse.HttpStatusCode == 200)
+            {
+
+                if (httpResponse.ContainsKey("orderRef"))
+                {
+                    result["id"] = httpResponse["orderRef"].ToString();
+                    result["extra"] = new JObject();
+                    result["extra"]["autostart_token"] = httpResponse["autoStartToken"].ToString();
+                    result["extra"]["autostart_url"] = "bankid:///?autostarttoken=" + result["extra"]["autostart_token"] + "&redirect=null";
+                    return EIDResult.CreateInitializedResult(result);
+
+                }
+
+                return EIDResult.CreateErrorResult("api_error", "A communications error occured");
+
+            }
+            else {
+
+                if (httpResponse.ContainsKey("errorCode"))
+                {
+                    switch (httpResponse["errorCode"].ToString())
                     {
-                        JObject responseObject = JsonConvert.DeserializeObject<JObject>(postResults);
-                        if (responseObject.ContainsKey("errorCode"))
-                        {
-                            switch (responseObject["errorCode"].ToString())
+                        case "alreadyInProgress":
+                            return EIDResult.CreateErrorResult("already_in_progress", "A transaction was already pending for this SSN");
+                        case "invalidParameters":
+
+                            switch (httpResponse["details"].ToString())
                             {
-                                case "invalidParameters":
-                                    return new ApiErrorResponse(ApiErrorResponse.ErrorCode.request_id_invalid, "The supplied request cannot be found"); ;
+                                case "Incorrect personalNumber":
+                                    return EIDResult.CreateErrorResult("request_ssn_invalid", "The supplied SSN is not valid");
+                                case "Invalid userVisibleData":
+                                    return EIDResult.CreateErrorResult("request_text_invalid", "The supplied agreement text is not valid");
                                 default:
-                                    return new ApiErrorResponse(ApiErrorResponse.ErrorCode.api_error, "A communications error occured", responseObject["hintCode"].ToString());
+                                    return EIDResult.CreateErrorResult("api_error", "A communications error occured", httpResponse["details"].ToString());
                             }
 
-                        }
-                        else
-                            return new ApiErrorResponse(ApiErrorResponse.ErrorCode.api_error, "Unkown response from remote API", postResults);
-
-                    }
-                    catch
-                    {
-                        return new ApiErrorResponse(ApiErrorResponse.ErrorCode.system_error, "The remote server response could not be deserialized");
+                        default:
+                            return EIDResult.CreateErrorResult("api_error", "A communications error occured", httpResponse["errorCode"].ToString());
                     }
 
                 }
+
+                return EIDResult.CreateErrorResult("system_error", "A communications error occured", httpResponse.HttpStatusMessage);
+
             }
-
-        }
-
-        public ApiResponse PollAuthRequest(string requestId)
-        {
-            return pollRequest(requestId);
-        }
-
-        public ApiResponse PollSignRequest(string requestId)
-        {
-            return pollRequest(requestId);
         }
     }
-
 }

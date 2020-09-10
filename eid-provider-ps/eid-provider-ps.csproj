@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>eid_provider_psc</RootNamespace>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>com.sorlov.eidprovider.ps</RootNamespace>
     <Authors>Daniel Sörlöv</Authors>
     <Company>Daniel Sörlöv</Company>
     <Product>EIDProvider.Net PowerShell Module</Product>

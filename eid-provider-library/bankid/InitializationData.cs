@@ -1,32 +1,35 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using com.sorlov.eidprovider;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace com.sorlov.eidprovider.bankid
 {
-    public class InitializationData: IInitializationData
+    public class InitializationData : EIDClientInitializationData
     {
-        public string Endpoint;
-        public bool AllowFingerprint;
-        public X509Certificate2 CACertificate;
-        public X509Certificate2 ClientCertificate;
 
-        public InitializationData(Enviroments enviroment)
+        public InitializationData(EIDEnvironment environment) : base(environment)
         {
-            if (enviroment == Enviroments.production)
+            if (environment == EIDEnvironment.Production)
             {
-                Endpoint = "https://appapi2.bankid.com/rp/v5";
-                AllowFingerprint = true;
-                CACertificate = new X509Certificate2(Helpers.GetCertFile("bankid_prod.ca"));
+                this.Add("endpoint", "https://appapi2.bankid.com/rp/v5");
+                this.Add("allowFingerprint", "true");
+                this.Add("ca_cert", "builtin://certs/bankid_prod.ca");
+                this.Add("client_cert", null);
+                this.Add("password", "");
             }
             else
             {
-                Endpoint = "https://appapi2.test.bankid.com/rp/v5";
-                AllowFingerprint = true;
-                CACertificate = new X509Certificate2(Helpers.GetCertFile("bankid_test.ca"));
-                ClientCertificate = new X509Certificate2(Helpers.GetCertFile("bankid_test.pfx"), "qwerty123");
+                this.Add("endpoint", "https://appapi2.test.bankid.com/rp/v5");
+                this.Add("allowFingerprint", "true");
+                this.Add("ca_cert", "builtin://certs/bankid_test.ca");
+                this.Add("client_cert", "builtin://certs/bankid_test.pfx");
+                this.Add("password", "qwerty123");
             }
+
         }
-    } 
-
-
+    }
 }

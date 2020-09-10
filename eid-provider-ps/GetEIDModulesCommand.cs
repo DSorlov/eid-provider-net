@@ -6,7 +6,7 @@ namespace com.sorlov.eidprovider.ps
     // Declare the class as a cmdlet and specify the
     // appropriate verb and noun for the cmdlet name.
     [Cmdlet(VerbsCommon.Get, "EIDModules")]
-    [OutputType("com.sorlov.eidprovider.Modules")]
+    [OutputType("com.sorlov.eidprovider.ps.EIDModulesEnum")]
     public class GetEIDModulesCommand : Cmdlet
     {
         // Override the ProcessRecord method to process
@@ -15,7 +15,7 @@ namespace com.sorlov.eidprovider.ps
         // method.
         protected override void ProcessRecord()
         {
-            foreach (Modules module in (Modules[])Enum.GetValues(typeof(Modules)))
+            foreach (EIDModulesEnum module in (EIDModulesEnum[])Enum.GetValues(typeof(EIDModulesEnum)))
             {
                 WriteObject(module);
             }

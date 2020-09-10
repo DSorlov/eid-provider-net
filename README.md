@@ -7,7 +7,7 @@
 # eid-provider-net
 This module is developed to enable rapid deployment of identity based authentication for .NET by creating a common interface to most of the suppliers for official electronic identification and it allows you to mix and match your suppliers. This is a .NET port from code that I have contributed in [eid-provider](https://github.com/DSorlov/eid-provider) and that is used in multiple projects. Documentation will be updated closer to release.
 
-| :warning:  This library is not relased yet for production   |
+| :warning:  This library is not relased yet for production and lacking documentation!   |
 |----------------------------------------------------------|
 
 | :warning:  This library requires .NET 5.0 to run!   |
@@ -20,6 +20,6 @@ There are basically right now two main types of integrations: one is working dir
 | ID-Type | Module | Vendor | Authentication | Signing | Geographies | Readiness |
 | --- | --- | --- | --- | --- | --- | --- |
 | BankID | [bankid](docs/bankid.md) | BankID | :heavy_check_mark: | :heavy_check_mark: | :sweden: | Production |
-| BankID | [frejaeid](docs/frejaeid.md) | BankID | :heavy_check_mark: | :heavy_check_mark: | :sweden: | Production |
+| Freja eID | [frejaeid](docs/frejaeid.md) | BankID | :heavy_check_mark: | :heavy_check_mark: | :sweden: | Production |
 
 

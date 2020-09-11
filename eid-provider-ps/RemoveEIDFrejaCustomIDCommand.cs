@@ -6,9 +6,9 @@ namespace com.sorlov.eidprovider.ps
 {
     // Declare the class as a cmdlet and specify the
     // appropriate verb and noun for the cmdlet name.
-    [Cmdlet(VerbsCommon.Remove, "EIDFrejaCustomIdentifier")]
+    [Cmdlet(VerbsCommon.Remove, "EIDFrejaCustomID")]
     [OutputType("com.sorlov.eidprovider.PSCustomObject")]
-    public class RemoveEIDFrejaCustomIdentifierCommand : Cmdlet
+    public class RemoveEIDFrejaCustomIDCommand : Cmdlet
     {
         [Parameter(Position = 0, Mandatory = true)]
         [ValidateNotNullOrEmpty()]

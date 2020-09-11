@@ -6,9 +6,9 @@ namespace com.sorlov.eidprovider.ps
 {
     // Declare the class as a cmdlet and specify the
     // appropriate verb and noun for the cmdlet name.
-    [Cmdlet(VerbsCommon.Set, "EIDFrejaCustomIdentifier")]
+    [Cmdlet(VerbsCommon.Set, "EIDFrejaCustomID")]
     [OutputType("com.sorlov.eidprovider.PSCustomObject")]
-    public class SetFrejaEIDFrejaCustomIdentifierCommand : Cmdlet
+    public class SetEIDFrejaCustomIDCommand : Cmdlet
     {
         [Parameter(Position = 0, Mandatory = true)]
         [ValidateNotNullOrEmpty()]

@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
@@ -147,6 +148,53 @@ namespace com.sorlov.eidprovider.frejaeid
             postData["signRef"] = id;
             string encodedData = "getOneSignResultRequest=" + System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(postData.ToString()));
             return pollRequest("sign/1.0/getOneResult", encodedData);
+        }
+
+        public bool CreateCustomIdentifier(string id, string customid)
+        {
+            JObject postData = new JObject();
+            postData["userInfoType"] = idType.ToString();
+            postData["customIdentifier"] = customid;
+
+            if (idType == UserInfo.SSN)
+            {
+                JObject userInfo = new JObject();
+                userInfo["country"] = defaultCountry.ToString();
+                userInfo["ssn"] = id;
+                postData["userInfo"] = System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(userInfo.ToString()));
+            }
+            else
+                postData["userInfo"] = id;
+
+            string encodedData = "setCustomIdentifierRequest=" + System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(postData.ToString()));
+
+            HttpRequest httpRequest = new HttpRequest(caCertificate, clientCertificate);
+            HttpResponse httpResponse = httpRequest.Post(httpEndpoint + "/user/manage/1.0/setCustomIdentifier", encodedData).Result;
+
+            if (httpResponse.HttpStatusCode == 204) return true;
+
+            if (httpResponse.ContainsKey("message"))                
+                throw new InvalidDataException(httpResponse["message"].ToString());
+
+            throw new InvalidDataException(httpResponse.HttpStatusMessage);            
+        }
+
+        public bool DeleteCustomIdentifier(string customid)
+        {
+            JObject postData = new JObject();
+            postData["customIdentifier"] = customid;
+
+            string encodedData = "deleteCustomIdentifierRequest=" + System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(postData.ToString()));
+
+            HttpRequest httpRequest = new HttpRequest(caCertificate, clientCertificate);
+            HttpResponse httpResponse = httpRequest.Post(httpEndpoint + "/user/manage/1.0/deleteCustomIdentifier", encodedData).Result;
+
+            if (httpResponse.HttpStatusCode == 204) return true;
+
+            if (httpResponse.ContainsKey("message"))
+                throw new InvalidDataException(httpResponse["message"].ToString());
+
+            throw new InvalidDataException(httpResponse.HttpStatusMessage);
         }
 
         private EIDResult pollRequest(string endpoint, string postData)

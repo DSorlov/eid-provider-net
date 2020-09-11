@@ -171,8 +171,12 @@ namespace com.sorlov.eidprovider.frejaeid
                         return EIDResult.CreateErrorResult("cancelled_by_idp", "The IdP have cancelled the request");
                     case "APPROVED":
 
-                        DecodedJWT decodedJWT = JsonWebToken.Decode(httpResponse["details"].ToString(), jwtCerts);
-                        JObject requestedAttributes = (JObject)decodedJWT.Payload["requestedAttributes"];
+                        JSonWebToken jsonWebToken = JSonWebToken.FromString(httpResponse["details"].ToString(), jwtCerts);
+
+                        if (!jsonWebToken.IsValid)
+                            return EIDResult.CreateErrorResult("api_error", "JWT Token validation failed"); ;
+
+                        JObject requestedAttributes = (JObject)jsonWebToken.Payload["requestedAttributes"];
 
                         //Process name
                         string givenName = string.Empty;
@@ -187,13 +191,13 @@ namespace com.sorlov.eidprovider.frejaeid
 
                         //Process identifier
                         string identifier = string.Empty;
-                        if (decodedJWT.Payload["userInfoType"].ToString() == "SSN")
+                        if (jsonWebToken.Payload["userInfoType"].ToString() == "SSN")
                         {
-                            JObject userInfo = JsonConvert.DeserializeObject<JObject>(decodedJWT.Payload["userInfo"].ToString());
+                            JObject userInfo = JsonConvert.DeserializeObject<JObject>(jsonWebToken.Payload["userInfo"].ToString());
                             identifier = userInfo["ssn"].ToString();
                         }
                         else
-                            identifier = decodedJWT.Payload["userInfo"].ToString();
+                            identifier = jsonWebToken.Payload["userInfo"].ToString();
 
                         //Assemble basic response
                         JObject result = new JObject();

@@ -8,6 +8,7 @@ namespace com.sorlov.eidprovider.ps
     public enum EIDTypesEnum
     {
         auth,
-        sign
+        sign,
+        orgid
     }
 }

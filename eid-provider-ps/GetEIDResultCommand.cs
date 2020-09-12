@@ -8,11 +8,9 @@ namespace com.sorlov.eidprovider.ps
     // Declare the class as a cmdlet and specify the
     // appropriate verb and noun for the cmdlet name.
     [Cmdlet(VerbsCommon.Get, "EIDResult", SupportsShouldProcess = true)]
-    [OutputType("System.Management.Automation.PSObject#com.sorlov.eidprovider.EIDResult")]
+    [OutputType("com.sorlov.eidprovider.EIDResult")]
     public class GetEIDResultCommand : Cmdlet
     {
-        
-
         // Declare the parameters for the cmdlet.
         [Parameter(Position = 0, Mandatory = true)]
         [ValidateNotNullOrEmpty()]
@@ -51,10 +49,10 @@ namespace com.sorlov.eidprovider.ps
                 {
                     case EIDModulesEnum.bankid:
                         client = new bankid.Client((bankid.InitializationData)config);
-                        return;
+                        break;
                     case EIDModulesEnum.frejaeid:
                         client = new frejaeid.Client((frejaeid.InitializationData)config);
-                        return;
+                        break;
                     default:
                         WriteError(new ErrorRecord(new ProviderNotFoundException(module.ToString() + " is not supported in this version of eid-provider-ps, upgrade?"), "101", ErrorCategory.InvalidArgument, Configuration));
                         StopProcessing();
@@ -68,16 +66,35 @@ namespace com.sorlov.eidprovider.ps
                 StopProcessing();
                 return;
             }
+            if (module!= EIDModulesEnum.frejaeid && type == EIDTypesEnum.orgid)
+            {
+                WriteError(new ErrorRecord(new ProviderNotFoundException(module.ToString() + " does not support type orgid"), "101", ErrorCategory.InvalidArgument, Configuration));
+                StopProcessing();
+                return;
+            }
         }
         private EIDModulesEnum module;
         private EIDClient client;
 
         protected override void ProcessRecord()
         {
-                if (ShouldProcess(id))
+            if (ShouldProcess(id,"Get results"))
+            {
+                switch(type)
                 {
-                    WriteObject(PSObjectConverter.EIDResult(type == EIDTypesEnum.auth ? client.PollAuthRequest(id) : client.PollSignRequest(id)));
+                    case EIDTypesEnum.orgid:
+                        WriteObject(PSObjectConverter.EIDResult(((frejaeid.Client)client).PollAddOrgIdResult(id)));
+                        break;
+                    case EIDTypesEnum.sign:
+                        WriteObject(PSObjectConverter.EIDResult(client.PollSignRequest(id)));
+                        break;
+                    default:
+                        WriteObject(PSObjectConverter.EIDResult(client.PollAuthRequest(id)));
+                        break;
                 }
+
+
+            }
         }
 
     }

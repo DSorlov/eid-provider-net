@@ -1,4 +1,4 @@
-# Changelog for eid-provider
+# Changelog for eid-provider-net
 
 The format is based on [Keep a Changelog][keep-a-changelog]
 <!-- and this project adheres to [Semantic Versioning][semantic-versioning]. -->

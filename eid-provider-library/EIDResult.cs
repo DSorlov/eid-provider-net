@@ -13,7 +13,8 @@ namespace com.sorlov.eidprovider
             initialized,
             completed,
             pending,
-            cancelled
+            cancelled,
+            ok
         }
 
         public ResultStatus Status
@@ -67,6 +68,22 @@ namespace com.sorlov.eidprovider
             data["code"] = code;
             data["description"] = description;
             return new EIDResult(ResultStatus.error, data);
+        }
+
+        internal static EIDResult CreateOKResult(string code, string description)
+        {
+            JObject data = new JObject();
+            data["code"] = code;
+            data["description"] = description;
+            return new EIDResult(ResultStatus.ok, data);
+        }
+        internal static EIDResult CreateOKResult(string code, string description, JObject extra)
+        {
+            JObject data = new JObject();
+            data["code"] = code;
+            data["description"] = description;
+            data["extra"] = extra;
+            return new EIDResult(ResultStatus.ok, data);
         }
 
         internal static EIDResult CreatePendingResult(string code, string description)

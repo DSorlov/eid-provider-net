@@ -6,13 +6,6 @@ using System.Threading.Tasks;
 
 namespace com.sorlov.eidprovider.frejaeid
 {
-    public enum JwtHashAlgorithm
-    {
-        RS256,
-        HS384,
-        HS512
-    }
-
     public enum LOALevel
     {
         BASIC,
@@ -25,7 +18,8 @@ namespace com.sorlov.eidprovider.frejaeid
         PHONE,
         EMAIL,
         SSN,
-        INFERRED
+        INFERRED,
+        ORG_ID
     }
 
     [Flags]
@@ -40,7 +34,8 @@ namespace com.sorlov.eidprovider.frejaeid
         SSN = 32,
         RELYING_PARTY_USER_ID = 64,
         INTEGRATOR_SPECIFIC_USER_UD = 128,
-        CUSTOM_IDENTIFIER = 256
+        CUSTOM_IDENTIFIER = 256,
+        ORG_ID = 512
     }
 
     public enum SSNCountry

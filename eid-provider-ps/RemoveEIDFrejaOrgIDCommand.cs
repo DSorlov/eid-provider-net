@@ -7,9 +7,9 @@ namespace com.sorlov.eidprovider.ps
 {
     // Declare the class as a cmdlet and specify the
     // appropriate verb and noun for the cmdlet name.
-    [Cmdlet(VerbsCommon.Set, "EIDFrejaCustomID")]
+    [Cmdlet(VerbsCommon.Remove, "EIDFrejaOrgID")]
     [OutputType("com.sorlov.eidprovider.EIDResult")]
-    public class SetEIDFrejaCustomIDCommand : Cmdlet
+    public class RemoveEIDFrejaOrgIDCommand : Cmdlet
     {
         [Parameter(Position = 0, Mandatory = true)]
         [ValidateNotNullOrEmpty()]
@@ -20,23 +20,14 @@ namespace com.sorlov.eidprovider.ps
         }
         private EIDClientInitializationData config;
 
-        [Parameter(Position = 1, Mandatory = true, ValueFromPipelineByPropertyName = true)]
-        [ValidateNotNullOrEmpty()]
-        public string Id
-        {
-            get => id;
-            set => id = value;
-        }
-        private string id;
-
         [Parameter(Position = 2, Mandatory = true, ValueFromPipelineByPropertyName = true)]
         [ValidateNotNullOrEmpty()]
-        public string CustomId
+        public string OrgId
         {
-            get => customId;
-            set => customId = value;
+            get => orgId;
+            set => orgId = value;
         }
-        private string customId;
+        private string orgId;
 
         private EIDClient client;
         private EIDModulesEnum module;
@@ -71,26 +62,18 @@ namespace com.sorlov.eidprovider.ps
 
         protected override void ProcessRecord()
         {
-            if (ShouldProcess(id))
+            if (ShouldProcess(orgId,"Remove org id"))
             {
-
-                EIDResult result;
-                if (module == EIDModulesEnum.frejaeid)
-                    result = ((frejaeid.Client)client).CreateCustomIdentifier(id, customId);
-                else
-                    result = ((frejaeid.Client)client).CreateCustomIdentifier(id, customId);
+                EIDResult result = ((frejaeid.Client)client).DeleteOrgId(orgId);
 
                 List<PSNoteProperty> addProps = new List<PSNoteProperty>()
                 {
-                    new PSNoteProperty("Id", id),
-                    new PSNoteProperty("CustomId", customId)
+                    new PSNoteProperty("OrgId", orgId)
                 };
                 List<string> addDefaults = new List<string>()
                 {
-                    "Id",
-                    "CustomId"
+                    "OrgId"
                 };
-
 
                 WriteObject(PSObjectConverter.EIDResult(result, addProps, addDefaults));
             }

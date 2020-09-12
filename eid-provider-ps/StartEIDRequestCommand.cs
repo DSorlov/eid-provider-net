@@ -17,11 +17,39 @@ namespace com.sorlov.eidprovider.ps
         }
         private string text = string.Empty;
     }
+    public class RequestEIDOperationCommandOrgIdDynamicParameters
+    {
+        [Parameter(Position = 3, Mandatory = true, ValueFromPipelineByPropertyName = true)]
+        [ValidateNotNullOrEmpty()]
+        public string Title
+        {
+            get => title;
+            set => title = value;
+        }
+        private string title = string.Empty;
+        [Parameter(Position = 4, Mandatory = true, ValueFromPipelineByPropertyName = true)]
+        [ValidateNotNullOrEmpty()]
+        public string Attribute
+        {
+            get => attribute;
+            set => attribute = value;
+        }
+        private string attribute = string.Empty;
+        [Parameter(Position = 5, Mandatory = true, ValueFromPipelineByPropertyName = true)]
+        [ValidateNotNullOrEmpty()]
+        public string Value
+        {
+            get => val;
+            set => val = value;
+        }
+        private string val = string.Empty;
+    }
+
 
     // Declare the class as a cmdlet and specify the
     // appropriate verb and noun for the cmdlet name.
     [Cmdlet(VerbsLifecycle.Start, "EIDRequest", SupportsShouldProcess=true)]
-    [OutputType("System.Management.Automation.PSObject#com.sorlov.eidprovider.EIDResult")]
+    [OutputType("com.sorlov.eidprovider.EIDResult")]
     public class StartEIDRequestCommand : Cmdlet, IDynamicParameters
     {
         // Declare the parameters for the cmdlet.
@@ -51,7 +79,7 @@ namespace com.sorlov.eidprovider.ps
         }
         private string id;
 
-        [Parameter(Position = 4)]
+        [Parameter()]
         public SwitchParameter Wait
         {
             get => wait;
@@ -66,10 +94,15 @@ namespace com.sorlov.eidprovider.ps
                 context = new RequestEIDOperationCommandSigningDynamicParameters();
                 return context;
             }
+            if (type == EIDTypesEnum.orgid)
+            {
+                context = new RequestEIDOperationCommandOrgIdDynamicParameters();
+                return context;
+            }
 
             return null;
         }
-        private RequestEIDOperationCommandSigningDynamicParameters context;
+        private object context;
 
         protected override void BeginProcessing()
         {
@@ -100,38 +133,64 @@ namespace com.sorlov.eidprovider.ps
                 StopProcessing();
                 return;
             }
-
-
+            if (module != EIDModulesEnum.frejaeid && type == EIDTypesEnum.orgid)
+            {
+                WriteError(new ErrorRecord(new ProviderNotFoundException(module.ToString() + " does not support type orgid"), "101", ErrorCategory.InvalidArgument, Configuration));
+                StopProcessing();
+                return;
+            }
         }
         private EIDModulesEnum module;
         private EIDClient client;
 
         protected override void ProcessRecord()
         {
-            if (ShouldProcess(id))
+            if (ShouldProcess(id,"Initiate request"))
             {
+                EIDResult initRequest;
+                switch (type)
+                {
+                    case EIDTypesEnum.orgid:
+                        initRequest = ((frejaeid.Client)client).InitAddOrgIdRequest(id,
+                            ((RequestEIDOperationCommandOrgIdDynamicParameters)context).Title,
+                            ((RequestEIDOperationCommandOrgIdDynamicParameters)context).Attribute,
+                            ((RequestEIDOperationCommandOrgIdDynamicParameters)context).Value);
+                        break;
+                    case EIDTypesEnum.sign:
+                        initRequest = client.InitSignRequest(id, ((RequestEIDOperationCommandSigningDynamicParameters)context).Text);
+                        break;
+                    default:
+                        initRequest = client.PollAuthRequest(id);
+                        break;
+                }
+                WriteObject(PSObjectConverter.EIDResult(initRequest));
+
                 if (wait)
                 {
-
-                    EIDResult initRequest = (type == EIDTypesEnum.auth) ? client.InitAuthRequest(id) : client.InitSignRequest(id, context.Text);
-                    WriteObject(PSObjectConverter.EIDResult(initRequest));
-
                     if (initRequest.Status != EIDResult.ResultStatus.initialized) return;
 
                     while (true)
                     {
                         Thread.Sleep(2000);
-                        EIDResult pollRequest = (type == EIDTypesEnum.auth) ? client.PollAuthRequest((string)initRequest["id"]) : client.PollSignRequest((string)initRequest["id"]);
+                        EIDResult pollRequest;
+                        switch (type)
+                        {
+                            case EIDTypesEnum.orgid:
+                                pollRequest = ((frejaeid.Client)client).PollAddOrgIdResult((string)initRequest["id"]);
+                                break;
+                            case EIDTypesEnum.sign:
+                                pollRequest = client.PollSignRequest((string)initRequest["id"]);
+                                break;
+                            default:
+                                pollRequest = client.PollAuthRequest((string)initRequest["id"]);
+                                break;
+                        }
                         WriteObject(PSObjectConverter.EIDResult(pollRequest));
 
-                        if (pollRequest.Status == EIDResult.ResultStatus.error || pollRequest.Status == EIDResult.ResultStatus.completed || pollRequest.Status == EIDResult.ResultStatus.cancelled)
+                        if (pollRequest.Status == EIDResult.ResultStatus.error || pollRequest.Status == EIDResult.ResultStatus.ok  || pollRequest.Status == EIDResult.ResultStatus.completed || pollRequest.Status == EIDResult.ResultStatus.cancelled)
                             return;
 
                     }
-                }
-                else
-                {
-                    WriteObject(PSObjectConverter.EIDResult(type == EIDTypesEnum.auth ? client.InitAuthRequest(id) : client.InitSignRequest(id,context.Text)));
                 }
             }
         }

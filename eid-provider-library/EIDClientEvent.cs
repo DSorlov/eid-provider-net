@@ -8,7 +8,7 @@ namespace com.sorlov.eidprovider
 {
     public class EIDClientEvent : EventArgs
     {
-        public EIDResult Result
+        public EIDResult EIDResult
         {
             get => result;
         }

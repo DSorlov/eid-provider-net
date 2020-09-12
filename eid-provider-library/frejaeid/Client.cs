@@ -2,7 +2,9 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
@@ -150,53 +152,6 @@ namespace com.sorlov.eidprovider.frejaeid
             return pollRequest("sign/1.0/getOneResult", encodedData);
         }
 
-        public bool CreateCustomIdentifier(string id, string customid)
-        {
-            JObject postData = new JObject();
-            postData["userInfoType"] = idType.ToString();
-            postData["customIdentifier"] = customid;
-
-            if (idType == UserInfo.SSN)
-            {
-                JObject userInfo = new JObject();
-                userInfo["country"] = defaultCountry.ToString();
-                userInfo["ssn"] = id;
-                postData["userInfo"] = System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(userInfo.ToString()));
-            }
-            else
-                postData["userInfo"] = id;
-
-            string encodedData = "setCustomIdentifierRequest=" + System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(postData.ToString()));
-
-            HttpRequest httpRequest = new HttpRequest(caCertificate, clientCertificate);
-            HttpResponse httpResponse = httpRequest.Post(httpEndpoint + "/user/manage/1.0/setCustomIdentifier", encodedData).Result;
-
-            if (httpResponse.HttpStatusCode == 204) return true;
-
-            if (httpResponse.ContainsKey("message"))                
-                throw new InvalidDataException(httpResponse["message"].ToString());
-
-            throw new InvalidDataException(httpResponse.HttpStatusMessage);            
-        }
-
-        public bool DeleteCustomIdentifier(string customid)
-        {
-            JObject postData = new JObject();
-            postData["customIdentifier"] = customid;
-
-            string encodedData = "deleteCustomIdentifierRequest=" + System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(postData.ToString()));
-
-            HttpRequest httpRequest = new HttpRequest(caCertificate, clientCertificate);
-            HttpResponse httpResponse = httpRequest.Post(httpEndpoint + "/user/manage/1.0/deleteCustomIdentifier", encodedData).Result;
-
-            if (httpResponse.HttpStatusCode == 204) return true;
-
-            if (httpResponse.ContainsKey("message"))
-                throw new InvalidDataException(httpResponse["message"].ToString());
-
-            throw new InvalidDataException(httpResponse.HttpStatusMessage);
-        }
-
         private EIDResult pollRequest(string endpoint, string postData)
         {
             HttpRequest httpRequest = new HttpRequest(caCertificate, clientCertificate);
@@ -222,7 +177,12 @@ namespace com.sorlov.eidprovider.frejaeid
                         JSonWebToken jsonWebToken = JSonWebToken.FromString(httpResponse["details"].ToString(), jwtCerts);
 
                         if (!jsonWebToken.IsValid)
-                            return EIDResult.CreateErrorResult("api_error", "JWT Token validation failed"); ;
+                            return EIDResult.CreateErrorResult("api_error", "JWT Token validation failed");
+
+                        if (jsonWebToken.Payload.ContainsKey("orgIdRef"))
+                        {
+                            return EIDResult.CreateOKResult("orgid_created","The organisational id have been issued.");
+                        }
 
                         JObject requestedAttributes = (JObject)jsonWebToken.Payload["requestedAttributes"];
 
@@ -283,6 +243,14 @@ namespace com.sorlov.eidprovider.frejaeid
             {
                 switch (httpResponse["code"].ToString())
                 {
+                    case "1012":
+                        return EIDResult.CreateErrorResult("cancelled_by_idp", "The IdP have cancelled the request: Not found");
+                    case "1005":
+                        return EIDResult.CreateErrorResult("cancelled_by_idp", "The IdP have cancelled the request: Blocked application");
+                    case "2000":
+                        return EIDResult.CreateErrorResult("already_in_progress", "A transaction was already pending for this SSN");
+                    case "1002":
+                        return EIDResult.CreateErrorResult("request_ssn_invalid", "The supplied SSN is not valid");
                     case "1100":
                         return EIDResult.CreateErrorResult("request_id_invalid", "The supplied request cannot be found");
                     default:
@@ -311,9 +279,13 @@ namespace com.sorlov.eidprovider.frejaeid
             if (httpResponse.HttpStatusCode == 200)
             {
 
-                if (httpResponse.ContainsKey("authRef")|| httpResponse.ContainsKey("signRef"))
+                if (httpResponse.ContainsKey("authRef") || httpResponse.ContainsKey("signRef") || httpResponse.ContainsKey("orgIdRef"))
                 {
-                    string refCode = httpResponse.ContainsKey("authRef") ? (string)httpResponse["authRef"] : (string)httpResponse["signRef"];
+                    string refCode = string.Empty;
+                    if (httpResponse.ContainsKey("authRef")) refCode = (string)httpResponse["authRef"];
+                    if (httpResponse.ContainsKey("signRef")) refCode = (string)httpResponse["signRef"];
+                    if (httpResponse.ContainsKey("orgIdRef")) refCode = (string)httpResponse["orgIdRef"];
+
                     result["id"] = refCode;
                     result["extra"] = new JObject();
                     result["extra"]["autostart_token"] = refCode.ToString();
@@ -336,6 +308,12 @@ namespace com.sorlov.eidprovider.frejaeid
                         case "1001":
                         case "1002":
                             return EIDResult.CreateErrorResult("request_ssn_invalid", "The supplied SSN is not valid");
+                        case "1005":
+                            return EIDResult.CreateErrorResult("cancelled_by_idp", "The IdP have cancelled the request: Blocked application");
+                        case "1004":
+                            return EIDResult.CreateErrorResult("cancelled_by_idp", "The IdP have cancelled the request: Permission denied");
+                        case "1012":
+                            return EIDResult.CreateErrorResult("cancelled_by_idp", "The IdP have cancelled the request: Not found");
                         default:
                             return EIDResult.CreateErrorResult("api_error", "A communications error occured", httpResponse["message"].ToString());
                     }
@@ -345,6 +323,177 @@ namespace com.sorlov.eidprovider.frejaeid
                 return EIDResult.CreateErrorResult("system_error", "A communications error occured", httpResponse.HttpStatusMessage);
 
             }
+        }
+
+        // *******************************************************************************************************************
+        // ******************************* Freja Specific Methods that extend the base library *******************************
+        // *******************************************************************************************************************
+        public async Task<EIDResult> CreateCustomIdentifierAsync(string id, string customid) => await Task.Run(() => { return CreateCustomIdentifier(id, customid); });
+        public async Task<EIDResult> DeleteCustomIdentifierAsync(string customid) => await Task.Run(() => { return DeleteCustomIdentifier(customid); });
+        public async Task<EIDResult> InitAddOrgIdRequestAsync(string id, string title, string attribute, string value) => await Task.Run(() => { return InitAddOrgIdRequest(id, title, attribute, value); });
+        public async Task<EIDResult> PollAddOrgIdResultAsync(string id) => await Task.Run(() => { return PollAddOrgIdResult(id); });
+        public async Task<EIDResult> CancelAddOrgIdRequestAsync(string id) => await Task.Run(() => { return CancelAddOrgIdRequest(id); });
+        public async Task<EIDResult> DeleteOrgIdAsync(string id) => await Task.Run(() => { return DeleteOrgId(id); });
+        public async Task<EIDResult> AddOrgIdRequestAsync(string id, string title, string attribute, string value, IProgress<EIDResult> progress, CancellationToken ct) => await addOrgIdRequest(id, title, attribute, value, progress, ct);
+        public async Task<EIDResult> AddOrgIdRequestAsync(string id, string title, string attribute, string value, IProgress<EIDResult> progress) => await addOrgIdRequest(id, title, attribute, value, progress);
+        public async Task<EIDResult> AddOrgIdRequestAsync(string id, string title, string attribute, string value, CancellationToken ct) => await addOrgIdRequest(id, title, attribute, value, null, ct); 
+        public async Task<EIDResult> AddOrgIdRequestAsync(string id, string title, string attribute, string value) => await addOrgIdRequest(id, title, attribute, value, null, default(CancellationToken)); 
+
+        private async Task<EIDResult> addOrgIdRequest(string id, string title, string attribute, string value, IProgress<EIDResult> progress = null, CancellationToken ct = default(CancellationToken))
+        {
+            return await Task.Run(() =>
+            {
+                EIDResult initRequest = InitAddOrgIdRequest(id, title, attribute, value);
+                if (initRequest.Status != EIDResult.ResultStatus.initialized) return initRequest;
+
+                progress?.Report(initRequest);
+                OnRequestEvent(new EIDClientEvent(initRequest));
+
+                while (true)
+                {
+                    Thread.Sleep(2000);
+                    EIDResult pollRequest = PollAddOrgIdResult((string)initRequest["id"]);
+
+                    if (pollRequest.Status == EIDResult.ResultStatus.error || pollRequest.Status == EIDResult.ResultStatus.ok || pollRequest.Status == EIDResult.ResultStatus.cancelled)
+                        return pollRequest;
+
+                    progress?.Report(pollRequest);
+                    OnRequestEvent(new EIDClientEvent(pollRequest));
+
+                    if (ct.IsCancellationRequested)
+                    {
+                        EIDResult cancelRequest = CancelAddOrgIdRequest((string)initRequest["id"]);
+                        progress?.Report(cancelRequest);
+                        OnRequestEvent(new EIDClientEvent(cancelRequest));
+                        ct.ThrowIfCancellationRequested();
+                    }
+                }
+            });
+
+        }
+
+        public EIDResult AddOrgIdRequest(string id, string title, string attribute, string value) => addOrgIdRequest(id, title, attribute, value).Result;
+
+        public EIDResult InitAddOrgIdRequest(string id, string title, string attribute, string value)
+        {
+            JObject postData = new JObject();
+            postData["userInfoType"] = idType.ToString();
+
+            if (idType == UserInfo.SSN)
+            {
+                JObject userInfo = new JObject();
+                userInfo["country"] = defaultCountry.ToString();
+                userInfo["ssn"] = id;
+                postData["userInfo"] = System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(userInfo.ToString()));
+            }
+            else
+                postData["userInfo"] = id;
+
+            JObject organisationId = new JObject();
+            organisationId["title"] = title;
+            organisationId["identifierName"] = attribute;
+            organisationId["identifier"] = value;
+            postData["organisationId"] = organisationId;
+
+            string encodedData = "initAddOrganisationIdRequest=" + System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(postData.ToString()));
+
+            return initRequest("organisation/management/orgId/1.0/initAdd", encodedData);
+
+        }
+
+        public EIDResult PollAddOrgIdResult(string id)
+        {
+            JObject postData = new JObject();
+            postData["orgIdRef"] = id;
+            string encodedData = "getOneOrganisationIdResultRequest=" + System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(postData.ToString()));
+            return pollRequest("organisation/management/orgId/1.0/getOneResult", encodedData);
+        }
+
+        public EIDResult CancelAddOrgIdRequest(string id)
+        {
+            JObject postData = new JObject();
+            postData["orgIdRef"] = id;
+            string encodedData = "cancelAddOrganisationIdRequest=" + System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(postData.ToString()));
+            return cancelRequest("organisation/management/orgId/1.0/cancelAdd", encodedData);
+        }
+
+        public EIDResult DeleteOrgId(string id)
+        {
+            JObject postData = new JObject();
+            postData["identifier"] = id;
+
+            string encodedData = "deleteOrganisationIdRequest=" + System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(postData.ToString()));
+
+            HttpRequest httpRequest = new HttpRequest(caCertificate, clientCertificate);
+            HttpResponse httpResponse = httpRequest.Post(httpEndpoint + "/organisation/management/orgId/1.0/delete", encodedData).Result;
+
+            if (httpResponse.HttpStatusCode == 200) return EIDResult.CreateOKResult("deleted", "The org id was successfully deleted");
+
+            if (httpResponse.ContainsKey("code"))
+            {
+                switch (httpResponse["code"].ToString())
+                {
+                    case "4000":
+                    case "4001":
+                        return EIDResult.CreateErrorResult("request_id_invalid", "The supplied org id is not valid");
+                    case "1008":
+                    case "1004":
+                        return EIDResult.CreateErrorResult("cancelled_by_idp", "The IdP have cancelled the request: Permission denied");
+                    default:
+                        return EIDResult.CreateErrorResult("api_error", "A communications error occured", httpResponse["message"].ToString());
+                }
+
+            }
+
+            return EIDResult.CreateErrorResult("api_error", httpResponse.HttpStatusMessage);
+
+        }
+
+        public EIDResult CreateCustomIdentifier(string id, string customid)
+        {
+            JObject postData = new JObject();
+            postData["userInfoType"] = idType.ToString();
+            postData["customIdentifier"] = customid;
+
+            if (idType == UserInfo.SSN)
+            {
+                JObject userInfo = new JObject();
+                userInfo["country"] = defaultCountry.ToString();
+                userInfo["ssn"] = id;
+                postData["userInfo"] = System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(userInfo.ToString()));
+            }
+            else
+                postData["userInfo"] = id;
+
+            string encodedData = "setCustomIdentifierRequest=" + System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(postData.ToString()));
+
+            HttpRequest httpRequest = new HttpRequest(caCertificate, clientCertificate);
+            HttpResponse httpResponse = httpRequest.Post(httpEndpoint + "/user/manage/1.0/setCustomIdentifier", encodedData).Result;
+
+            if (httpResponse.HttpStatusCode == 204) return EIDResult.CreateOKResult("created", "The custom ID was successfully set");
+
+            if (httpResponse.ContainsKey("message"))
+                return EIDResult.CreateErrorResult("api_error", httpResponse["message"].ToString());
+
+            return EIDResult.CreateErrorResult("api_error", httpResponse.HttpStatusMessage);
+        }
+
+        public EIDResult DeleteCustomIdentifier(string customid)
+        {
+            JObject postData = new JObject();
+            postData["customIdentifier"] = customid;
+
+            string encodedData = "deleteCustomIdentifierRequest=" + System.Convert.ToBase64String(System.Text.ASCIIEncoding.UTF8.GetBytes(postData.ToString()));
+
+            HttpRequest httpRequest = new HttpRequest(caCertificate, clientCertificate);
+            HttpResponse httpResponse = httpRequest.Post(httpEndpoint + "/user/manage/1.0/deleteCustomIdentifier", encodedData).Result;
+
+            if (httpResponse.HttpStatusCode == 204) return EIDResult.CreateOKResult("deleted","The custom ID was successfully deleted");
+
+            if (httpResponse.ContainsKey("message"))
+                return EIDResult.CreateErrorResult("api_error", httpResponse["message"].ToString());
+
+            return EIDResult.CreateErrorResult("api_error", httpResponse.HttpStatusMessage);
         }
     }
 }

@@ -18,7 +18,7 @@ See the [basic method documentation](docs/methods.md) or the [basic examples](do
 A powershell cmdlet project that provides a module for use with PowerShell to make sure simple admin devops easily can be used to interact with the library in scripts and wherever else it is needed, makes output more powershell friendly and is allaround a bit nicer to work with for interactive or scripting purposes.
 See [powershell examples](docs/powershell_examples.md).
 
-### Supported modules
+### Supported integrations
 There are basically right now two main types of integrations: one is working directly with the service apis and the other kind is working with a broker service. The broker services can be usefull if you have many integrations or other sources in your enterprise and you wish to use the same sources for these. Right now I am working on moving over and adapting the code for the providers for [eid-provider](https://github.com/DSorlov/eid-provider) and will be added as they are needed and updated, submit an issue if you need to get one of them prioritized.
 
 | ID-Type | Module | Vendor | Authentication | Signing | Geographies | Readiness |

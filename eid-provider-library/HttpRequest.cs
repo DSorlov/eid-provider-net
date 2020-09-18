@@ -153,7 +153,7 @@ namespace com.sorlov.eidprovider
                     return false;
                 }
 
- //dotNet 5.0 offers a nicer approach so if we are building modern then use that custom store otherwise just loop and hope the root is the first in the chain. =)
+                //dotNet 5.0 offers a nicer approach so if we are building modern then use that custom store otherwise just loop and hope the root is the first in the chain. =)
 #if NET_50
                 for (int i = 1; i < chain.ChainElements.Count; i++)
                 {
@@ -170,10 +170,14 @@ namespace com.sorlov.eidprovider
                 chain.ChainPolicy.CustomTrustStore.AddRange(roots);
                 return chain.Build((X509Certificate2)serverCert);
 #else
-                X509Certificate2 chainRoot = chain.ChainElements[chain.ChainElements.Count - 1].Certificate;
-                return roots.Contains(chainRoot);
-#endif
-            };
+                if (roots.Contains(chain.ChainElements[0].Certificate)) return true;
+
+                foreach (X509Certificate2 cert in roots)
+                    if (chain.ChainElements[0].Certificate.Issuer == cert.Subject) return true;
+
+                return false;
+# endif
+           };
         }
 
         internal static Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> CreateCustomRootValidator(X509Certificate2Collection trustedRoots, X509Certificate2Collection intermediates = null)

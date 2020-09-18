@@ -7,9 +7,6 @@
 # eid-provider-net
 This code is developed to enable rapid deployment of identity based authentication for .NET by creating a common interface to most of the suppliers for official electronic identification and it allows you to mix and match your suppliers. This is a .NET port from code that I have contributed in [eid-provider](https://github.com/DSorlov/eid-provider) and that is used in multiple projects.
 
-| :warning:  This library requires .NET 5.0 to run!   |
-|----------------------------------------------------------|
-
 ### eid-provider-net library
 A .net library that is performing all the operations towards the modules as outlined in the table below and the working horse of this project.
 See the [basic method documentation](docs/methods.md) or the [basic examples](docs/examples.md).

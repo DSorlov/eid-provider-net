@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+	<PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>com.sorlov.eidprovider</RootNamespace>
     <AssemblyName>eid-provider</AssemblyName>
@@ -16,6 +16,66 @@
     <RepositoryType>GIT</RepositoryType>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net5.0' ">NET_50</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net48' ">NET_48</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net472' ">NET_472</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net471' ">NET_471</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net47' ">NET_47</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net462' ">NET_462</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net461' ">NET_461</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net46' ">NET_46</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net452' ">NET_452</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net451' ">NET_451</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net45' ">NET_45</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net403' ">NET_403</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net40' ">NET_40</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net35' ">NET_35</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net20' ">NET_20</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net11' ">NET_11</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netcore' ">NETCORE_45</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netcore45' ">NETCORE_45</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netcore451' ">NETCORE_451</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netcore50' ">NETCORE_50</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netmf' ">NETMF</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'win8' ">NETCORE_45</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'win81' ">NETCORE_451</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netstandard1.0' ">NETSTANDARD_10</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netstandard1.1' ">NETSTANDARD_11</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netstandard1.2' ">NETSTANDARD_12</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netstandard1.3' ">NETSTANDARD_13</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netstandard1.4' ">NETSTANDARD_14</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netstandard1.5' ">NETSTANDARD_15</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netstandard1.6' ">NETSTANDARD_16</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netstandard2.0' ">NETSTANDARD_20</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netstandard2.1' ">NETSTANDARD_21</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">NETCOREAPP_10</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netcoreapp1.1' ">NETCOREAPP_11</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">NETCOREAPP_20</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">NETCOREAPP_21</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netcoreapp2.2' ">NETCOREAPP_22</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netcoreapp3.0' ">NETCOREAPP_30</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">NETCOREAPP_31</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'uap' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'win' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'aspnet50' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'aspnetcore50' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'dnxcore50' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'dnx' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'dnx45' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'dnx451' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'dnx452' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'dotnet' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'dotnet50' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'dotnet51' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'dotnet52' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'dotnet53' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'dotnet54' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'dotnet55' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'dotnet56' ">NET_DEPRECATED</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'winrt' ">NET_DEPRECATED</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

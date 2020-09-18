@@ -4,7 +4,7 @@ The format is based on [Keep a Changelog][keep-a-changelog]
 <!-- and this project adheres to [Semantic Versioning][semantic-versioning]. -->
 
 ## [Unreleased]
-- Nothing right now
+- Support for building non net 5.0 library
 
 ## [0.0.1] (2020-09-12)
 

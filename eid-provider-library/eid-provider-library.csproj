@@ -4,7 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>com.sorlov.eidprovider</RootNamespace>
     <AssemblyName>eid-provider</AssemblyName>
-    <Version>0.0.1</Version>
+    <Version>0.0.2</Version>
     <Authors>Daniel Sörlöv</Authors>
     <Company>Daniel Sörlöv</Company>
     <Description>eid-provider adapted for .net</Description>
@@ -76,6 +76,13 @@
     <DefineConstants Condition=" '$(TargetFramework)' == 'dotnet55' ">NET_DEPRECATED</DefineConstants>
     <DefineConstants Condition=" '$(TargetFramework)' == 'dotnet56' ">NET_DEPRECATED</DefineConstants>
     <DefineConstants Condition=" '$(TargetFramework)' == 'winrt' ">NET_DEPRECATED</DefineConstants>
+    <PackageTags>BankID Freja eID eLegitimation eleg funktionstjänster grandid</PackageTags>
+    <PackageReleaseNotes>- Promoted to stable release</PackageReleaseNotes>
+    <NeutralLanguage>en-SE</NeutralLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>C:\github\eid-provider-net\build\</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>

@@ -9,19 +9,18 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "eid-provider-ps", "eid-prov
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{813C5119-29E2-4A37-844B-B582D9E76243}"
 	ProjectSection(SolutionItems) = preProject
-		.gitattributes = .gitattributes
-		.gitignore = .gitignore
+		CHANGELOG.md = CHANGELOG.md
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{B8510F30-A456-44AB-A7AF-6CF2CD5EDF3A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{FB427C0B-02CF-4DA5-A5A7-D60D7F27835B}"
 	ProjectSection(SolutionItems) = preProject
-		..\eid-provider\docs\bankid.md = ..\eid-provider\docs\bankid.md
-		..\eid-provider\docs\examples.md = ..\eid-provider\docs\examples.md
-		..\eid-provider\docs\frejaeid.md = ..\eid-provider\docs\frejaeid.md
-		..\eid-provider\docs\methods.md = ..\eid-provider\docs\methods.md
-		powershell_examples.cs = powershell_examples.cs
+		docs\bankid.md = docs\bankid.md
+		docs\examples.md = docs\examples.md
+		docs\frejaeid.md = docs\frejaeid.md
+		docs\methods.md = docs\methods.md
+		docs\powershell_examples.md = docs\powershell_examples.md
 	EndProjectSection
 EndProject
 Global
@@ -41,9 +40,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{B8510F30-A456-44AB-A7AF-6CF2CD5EDF3A} = {813C5119-29E2-4A37-844B-B582D9E76243}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F9EA76C5-F1A9-4ECA-93D4-C0E207AA0DC7}

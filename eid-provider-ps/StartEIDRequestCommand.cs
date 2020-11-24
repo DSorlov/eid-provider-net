@@ -160,7 +160,7 @@ namespace com.sorlov.eidprovider.ps
                         initRequest = client.InitSignRequest(id, ((RequestEIDOperationCommandSigningDynamicParameters)context).Text);
                         break;
                     default:
-                        initRequest = client.PollAuthRequest(id);
+                        initRequest = client.InitAuthRequest(id);
                         break;
                 }
                 WriteObject(PSObjectConverter.EIDResult(initRequest));

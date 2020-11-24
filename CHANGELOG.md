@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog][keep-a-changelog]
 ## [Unreleased]
 - Nothing right now
 
+## [0.0.2] (2020-11-24)
+
+### Library
+- Promoted to stable release
+
+### Powershell
+- Promoted to stable release
+
 ## [0.0.1] (2020-09-12)
 
 ### Library
@@ -18,4 +26,5 @@ The format is based on [Keep a Changelog][keep-a-changelog]
 
 [keep-a-changelog]: http://keepachangelog.com/en/1.0.0/
 [Unreleased]: https://github.com/DSorlov/eid-provider-net/compare/master...dev
+[0.0.2]: https://github.com/DSorlov/eid-provider-net/releases/tag/v0.0.2
 [0.0.1]: https://github.com/DSorlov/eid-provider-net/releases/tag/v0.0.1

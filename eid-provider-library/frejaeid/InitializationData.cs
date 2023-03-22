@@ -23,7 +23,7 @@ namespace com.sorlov.eidprovider.frejaeid
                 this.Add("attribute_list", "EMAIL_ADDRESS,RELYING_PARTY_USER_ID,BASIC_USER_INFO");
                 this.Add("minimum_level", "EXTENDED");
                 this.Add("default_country", "SE");
-                this.Add("jwt_cert", "{'aRw9OLn2BhM7hxoc458cIXHfezw': 'builtin://certs/frejaeid_prod_aRw9OLn2BhM7hxoc458cIXHfezw.jwt', 'onjnxVgI3oUzWQMLciD7sQZ4mqM': 'builtin://certs/frejaeid_prod_onjnxVgI3oUzWQMLciD7sQZ4mqM.jwt'}");
+                this.Add("jwt_cert", "{'aRw9OLn2BhM7hxoc458cIXHfezw': 'builtin://certs/frejaeid_prod_aRw9OLn2BhM7hxoc458cIXHfezw.jwt', 'wSYLdhe93ToPR2X1UrNXxOg1juI': 'builtin://certs/frejaeid_prod_wSYLdhe93ToPR2X1UrNXxOg1juI.jwt'}");
             }
             else
             {
@@ -35,7 +35,7 @@ namespace com.sorlov.eidprovider.frejaeid
                 this.Add("attribute_list", "EMAIL_ADDRESS,RELYING_PARTY_USER_ID,BASIC_USER_INFO");
                 this.Add("minimum_level", "EXTENDED");
                 this.Add("default_country", "SE");
-                this.Add("jwt_cert", "{'2LQIrINOzwWAVDhoYybqUcXXmVs': 'builtin://certs/frejaeid_test_2LQIrINOzwWAVDhoYybqUcXXmVs.jwt', 'HwMHK_gb3_iuNF1advMtlG0-fUs': 'builtin://certs/frejaeid_test_HwMHK_gb3_iuNF1advMtlG0-fUs.jwt'}");
+                this.Add("jwt_cert", "{'2LQIrINOzwWAVDhoYybqUcXXmVs': 'builtin://certs/frejaeid_test_2LQIrINOzwWAVDhoYybqUcXXmVs.jwt', 'DiZbzBfysUm6-IwI-GtienEsbjc': 'builtin://certs/frejaeid_test_DiZbzBfysUm6-IwI-GtienEsbjc.jwt'}");
             }
 
         }

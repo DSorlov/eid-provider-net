@@ -216,20 +216,42 @@ namespace com.sorlov.eidprovider.frejaeid
                         result["user"]["fullname"] = fullName;
 
                         result["extra"] = new JObject();
+                        if (requestedAttributes.ContainsKey("age"))
+                            result["extra"]["age"] = requestedAttributes["age"].ToString();
+                        if (requestedAttributes.ContainsKey("photo"))
+                            result["extra"]["photo"] = requestedAttributes["photo"].ToString();
                         if (requestedAttributes.ContainsKey("dateOfBirth"))
-                            result["extra"]["date_of_birth"] = requestedAttributes["dateOfBirth"].ToString();
+                            result["extra"]["dateOfBirth"] = requestedAttributes["dateOfBirth"].ToString();
                         if (requestedAttributes.ContainsKey("emailAddress"))
-                            result["extra"]["email_address"] = requestedAttributes["emailAddress"].ToString();
+                            result["extra"]["emailAddress"] = requestedAttributes["emailAddress"].ToString();
                         if (requestedAttributes.ContainsKey("allEmailAddresses"))
-                            result["extra"]["all_email_addresses"] = requestedAttributes["allEmailAddresses"].ToString();
+                            result["extra"]["allEmailAddresses"] = requestedAttributes["allEmailAddresses"].ToString();
                         if (requestedAttributes.ContainsKey("addresses"))
                             result["extra"]["addresses"] = requestedAttributes["addresses"].ToString();
                         if (requestedAttributes.ContainsKey("customIdentifier"))
-                            result["extra"]["custom_identifier"] = requestedAttributes["customIdentifier"].ToString();
+                            result["extra"]["customIdentifier"] = requestedAttributes["customIdentifier"].ToString();
+                        if (requestedAttributes.ContainsKey("registrationLevel"))
+                            result["extra"]["registrationLevel"] = requestedAttributes["registrationLevel"].ToString();
                         if (requestedAttributes.ContainsKey("ssn"))
                         {
-                            result["extra"]["ssn_number"] = requestedAttributes["ssn"]["ssn"].ToString();
-                            result["extra"]["ssn_country"] = requestedAttributes["ssn"]["country"].ToString();
+                            result["extra"]["ssnNumber"] = requestedAttributes["ssn"]["ssn"].ToString();
+                            result["extra"]["ssnCountry"] = requestedAttributes["ssn"]["country"].ToString();
+                        }
+                        if (requestedAttributes.ContainsKey("document"))
+                        {
+                            result["extra"]["documentType"] = requestedAttributes["document"]["type"].ToString();
+                            result["extra"]["documentCountry"] = requestedAttributes["document"]["country"].ToString();
+                            result["extra"]["documentNumber"] = requestedAttributes["document"]["serialNumber"].ToString();
+                            result["extra"]["documentExpiration"] = requestedAttributes["document"]["expirationDate"].ToString();
+                        }
+
+                        if (requestedAttributes.ContainsKey("covidCertificates"))
+                        {
+                            if (requestedAttributes["covidCertificates"].ContainsKey("allowed"))
+                                if (requestedAttributes["covidCertificates"]["allowed"]=="true")
+                                    result["extra"]["covidVaccines"] = requestedAttributes["covidCertificates"]["vaccines"]["certificates"].ToString();
+                                    result["extra"]["covidTests"] = requestedAttributes["covidCertificates"]["tests"]["certificates"].ToString();
+                                    result["extra"]["covidRecovery"] = requestedAttributes["covidCertificates"]["recovery"]["certificates"].ToString();
                         }
 
 

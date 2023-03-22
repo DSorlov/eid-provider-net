@@ -35,7 +35,11 @@ namespace com.sorlov.eidprovider.frejaeid
         RELYING_PARTY_USER_ID = 64,
         INTEGRATOR_SPECIFIC_USER_UD = 128,
         CUSTOM_IDENTIFIER = 256,
-        ORG_ID = 512
+        ORG_ID = 512,
+        PHOTO = 1024,
+        AGE = 2048,
+        DOCUMENT = 4096,
+        COVID_CERTIFICATES = 8192
     }
 
     public enum SSNCountry

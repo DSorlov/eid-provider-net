@@ -4,12 +4,12 @@
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>com.sorlov.eidprovider</RootNamespace>
     <AssemblyName>eid-provider</AssemblyName>
-    <Version>0.0.2</Version>
+    <Version>0.0.3</Version>
     <Authors>Daniel Sörlöv</Authors>
     <Company>Daniel Sörlöv</Company>
     <Description>eid-provider adapted for .net</Description>
     <Product>EIDProvider.Net</Product>
-    <Copyright>(c) 2019-2020 Daniel Sörlöv. All rights reserved.</Copyright>
+    <Copyright>(c) 2019-2023 Daniel Sörlöv. All rights reserved.</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/DSorlov/eid-provider-net</PackageProjectUrl>
     <RepositoryUrl>https://github.com/DSorlov/eid-provider-net.git</RepositoryUrl>
